@@ -18,7 +18,6 @@ class CatalogoController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:api');
 
         $utilidad = GlobalAttribute::find(1);
         $utilidad = (float) $utilidad->value;
@@ -88,7 +87,7 @@ class CatalogoController extends Controller
             $this->proveedor = null;
         }
 
-        $products  = CatalogoProduct::leftjoin('product_category', 'product_category.product_id', 'products.id')
+        $products  = CatalogoProduct::with(['images','color','productAttributes','category'])->leftjoin('product_category', 'product_category.product_id', 'products.id')
             ->leftjoin('categories', 'product_category.category_id', 'categories.id')
             ->leftjoin('colors', 'products.color_id', 'colors.id')
             ->where('products.name', 'LIKE', $nombre)
@@ -129,7 +128,6 @@ class CatalogoController extends Controller
             'stockMax' => $stockMax,
             'stockMin' => $stockMin,
             'orderStock' => $orderStock,
-            'proveedores' => $proveedores,
         ], 200);
     }
 }

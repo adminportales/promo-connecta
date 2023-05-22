@@ -70,6 +70,11 @@ class Product extends Model
         return $this->hasMany('App\Models\Catalogo\ProductCategory', 'product_id', 'id');
     }
 
+    public function category()
+    {
+        return $this->belongsToMany('App\Models\Catalogo\Category', 'product_category', 'product_id', 'category_id');
+    }
+
     public function precios()
     {
         return $this->hasMany('App\Models\Catalogo\Price', 'product_id', 'id');
