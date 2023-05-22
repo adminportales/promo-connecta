@@ -18,6 +18,8 @@ class CatalogoController extends Controller
 
     public function __construct()
     {
+        $this->middleware('auth:api');
+
         $utilidad = GlobalAttribute::find(1);
         $utilidad = (float) $utilidad->value;
         $price = DB::connection('mysql_catalogo')->table('products')->max('price');
