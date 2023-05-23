@@ -90,17 +90,19 @@ class AuthController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
             'phone' => 'required',
+            'company' => 'required',
             'password' => 'required',
             'repeat_password' => 'required|same:password'
         ]);
         // Retornar errores de validacion
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 200);
+            return response()->json(['errors' => $validator->getMessageBag() ], 200);
         }
         // Registrar usuario
         $user =  User::create([
             "name" => $request->name,
             "phone" => $request->phone,
+            "company" => $request->company,
             "email" => $request->email,
             "password" => Hash::make($request->password),
         ]);
