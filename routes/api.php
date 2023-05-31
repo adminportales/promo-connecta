@@ -23,5 +23,7 @@ Route::group(['middleware' => 'api'], function ($router) {
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('user-profile', [AuthController::class, 'me']);
 });
-Route::get('/catalogo', [CatalogoController::class, 'catalogo']);
 Route::post('/register', [AuthController::class, 'register']);
+
+Route::get('/catalogo', [CatalogoController::class, 'catalogo']);
+Route::get('/catalogo/{product}', [CatalogoController::class, 'verProducto']);

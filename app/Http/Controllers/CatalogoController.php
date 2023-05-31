@@ -6,6 +6,7 @@ use App\Models\Catalogo\Category;
 use App\Models\Catalogo\GlobalAttribute;
 use App\Models\Catalogo\Provider as CatalogoProvider;
 use App\Models\Catalogo\Product as CatalogoProduct;
+use App\Models\Catalogo\ProductCategory;
 use App\Models\Catalogo\Type;
 use Exception;
 use Illuminate\Http\Request;
@@ -87,7 +88,7 @@ class CatalogoController extends Controller
             $this->proveedor = null;
         }
 
-        $products  = CatalogoProduct::with(['images','color','productAttributes','category'])->leftjoin('product_category', 'product_category.product_id', 'products.id')
+        $products  = CatalogoProduct::with(['images', 'color', 'productAttributes', 'category'])->leftjoin('product_category', 'product_category.product_id', 'products.id')
             ->leftjoin('categories', 'product_category.category_id', 'categories.id')
             ->leftjoin('colors', 'products.color_id', 'colors.id')
             ->where('products.name', 'LIKE', $nombre)
@@ -128,6 +129,49 @@ class CatalogoController extends Controller
             'stockMax' => $stockMax,
             'stockMin' => $stockMin,
             'orderStock' => $orderStock,
+        ], 200);
+    }
+
+    public function verProducto(CatalogoProduct $product)
+    {
+        $utilidad = GlobalAttribute::find(1);
+        $utilidad = (float) $utilidad->value;
+        $msg = '';
+        // Consultar las existencias de los productos en caso de ser de Doble Vela.
+        if ($product->provider_id == 5) {
+            $cliente = new \nusoap_client('http://srv-datos.dyndns.info/doblevela/service.asmx?wsdl', 'wsdl');
+            $error = $cliente->getError();
+            if ($error) {
+                echo 'Error' . $error;
+            }
+            //agregamos los parametros, en este caso solo es la llave de acceso
+            $parametros = array('Key' => 't5jRODOUUIoytCPPk2Nd6Q==', 'codigo' => $product->sku_parent);
+            //hacemos el llamado del metodo
+            $resultado = $cliente->call('GetExistencia', $parametros);
+            $msg = '';
+            if (array_key_exists('GetExistenciaResult', $resultado)) {
+                $informacionExistencias = json_decode(utf8_encode($resultado['GetExistenciaResult']))->Resultado;
+                if (count($informacionExistencias) > 1) {
+                    foreach ($informacionExistencias as $productExistencia) {
+                        if ($product->sku == $productExistencia->CLAVE) {
+                            $product->stock = $productExistencia->EXISTENCIAS;
+                            $product->save();
+                            break;
+                        }
+                        $msg = "Este producto no se encuentra en el catalogo que esta enviado DV via Servicio WEB";
+                    }
+                } else {
+                    $msg = "Este producto no se encuentra en el catalogo que esta enviado DV via Servicio WEB";
+                }
+            } else {
+                $msg = "No se obtuvo informacion acerca del Stock de este producto. Es posible que los datos sean incorrectos";
+            }
+        }
+
+        return response()->json([
+            'product' => $product,
+            // 'utilidad' => $utilidad,
+            'msg' => $msg
         ], 200);
     }
 }
