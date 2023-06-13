@@ -174,6 +174,11 @@ class CatalogoController extends Controller
             }
         }
 
+        $product->images;
+        $product->color;
+        $product->productAttributes;
+        $product->category;
+
         return response()->json([
             'product' => $product,
             'msg' => $msg
