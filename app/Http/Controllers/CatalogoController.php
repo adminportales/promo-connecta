@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Catalogo\Category;
+use App\Models\Catalogo\Color;
 use App\Models\Catalogo\GlobalAttribute;
 use App\Models\Catalogo\Provider as CatalogoProvider;
 use App\Models\Catalogo\Product as CatalogoProduct;
@@ -49,8 +50,20 @@ class CatalogoController extends Controller
         $this->type = 1;
     }
 
-    public function catalogo()
+    public function catalogo(Request $request)
     {
+        if ($request->name) {
+            $this->nombre  = $request->name;
+        }
+        if ($request->category) {
+            $this->category  = $request->category;
+        }
+        if ($request->color) {
+            $this->color  = $request->color;
+        }
+
+        $categorias = Category::withCount('productCategories')->get()->where('product_categories_count', '>', 0);
+        $colores = Color::withCount('products')->get()->where('products_count', '>', 0);
         $utilidad = GlobalAttribute::find(1);
         $utilidad = (float) $utilidad->value;
 
@@ -120,15 +133,8 @@ class CatalogoController extends Controller
             ->paginate(32);
         return response()->json([
             'products' => $products,
-            'utilidad' => $utilidad,
-            'types' => $types,
-            'price' => $price,
-            'priceMax' => $precioMax,
-            'priceMin' => $precioMin,
-            'stock' => $stock,
-            'stockMax' => $stockMax,
-            'stockMin' => $stockMin,
-            'orderStock' => $orderStock,
+            'categorias' => $categorias,
+            'colores' => $colores,
         ], 200);
     }
 
@@ -170,7 +176,6 @@ class CatalogoController extends Controller
 
         return response()->json([
             'product' => $product,
-            // 'utilidad' => $utilidad,
             'msg' => $msg
         ], 200);
     }
